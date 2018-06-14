@@ -113,28 +113,32 @@ with tf.Session() as sess:
 
 
         predictions = sess.run(y_hat_activated, feed_dict={X: X_train[:NUM_EX]})
-    
-        distance = pairwise_distances(predictions,metric='euclidean')
-      
-        
+
+        distance = pairwise_distances(predictions,metric='euclidean')  # cosine
+
+
         from sklearn.manifold import TSNE
         dist=np.asmatrix(distance)
-        projection = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300).fit_transform(dist)
+        projection = TSNE(n_components=2, verbose=1, perplexity=40, learning_rate=10, n_iter=3000, metric='precomputed').fit_transform(dist)
 
-        
+
         for s in range(SIZE_SELECTION):
-            fig = plt.figure()
-            axis = fig.add_axes([0, 0, 1, 1])
-            axis.scatter(projection[:len(SELECTED),0], projection[:len(SELECTED),1], c='r')
-            df=pd.DataFrame(distance[SELECTED]).min()
-            next_one=df.idxmax(axis=0)
-            SELECTED.append(next_one)
-            axis.scatter(projection[next_one,0], projection[next_one,1], c='b')
-            remaining= set(range(NUM_EX))-set(SELECTED)
-            remaining= list(remaining)
-                         
-            axis.scatter(projection[remaining[0]:next_one,0], projection[remaining[0]:next_one,1], c='y')
-            axis.scatter(projection[(next_one+1):,0], projection[(next_one+1):,1], c='y')
-            print(len(SELECTED))
-            plt.show()
-#             fig.savefig(os.path.join(output_directory, group_key + '.png'))
+          fig = plt.figure()
+          axis = fig.add_axes([0, 0, 1, 1])
+
+          df=pd.DataFrame(distance[SELECTED]).min()
+          next_one=df.idxmax(axis=0)
+          SELECTED.append(next_one)
+
+          remaining= set(range(NUM_EX))-set(SELECTED)
+          remaining= list(remaining)
+
+          axis.scatter(projection[remaining,0], projection[remaining,1], c='y')
+          selected= projection[SELECTED]
+          axis.scatter(selected[:,0],selected[:,1], c='r')
+          axis.scatter(projection[next_one,0], projection[next_one,1], c='b')
+
+
+#       
+          print(len(SELECTED))
+          plt.show()
